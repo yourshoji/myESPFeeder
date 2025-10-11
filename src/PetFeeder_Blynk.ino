@@ -91,6 +91,15 @@ rtcStatus rtcTimer() {
 
 rtcStatus status; // declaring (globally)
 
+struct FeedState {
+  bool active = false;
+  unsigned long startTime = 0;
+  int duration = 0;
+  String size = "";
+};
+
+FeedState currentFeed;
+
 void setup()
 {
   Serial.begin(115200);
@@ -183,6 +192,14 @@ void loop() {
     digitalWrite(LED_WiFi, WiFi_Status ? HIGH : LOW);
     Blynk.virtualWrite(V2, WiFi_Status ? HIGH : LOW);
   }
+
+  // schedule shifting: blynk report
+  // for (int i = 0; i<3; i++){
+  //   feedTimer &t = feedingTimes[i];
+  //   if (t.hr != ){
+      
+  //   }
+  // }
   
   // digitalWrite(LED_BUILTIN, HIGH);
   // Blynk.virtualWrite(V0, HIGH);
@@ -302,9 +319,11 @@ void onTimer(){
     if (!t.triggered) {
       int rtcSec = status.rtc_hr*3600 + status.rtc_min*60 + status.rtc_sec;
       int timSec = t.hr*3600 + t.min*60 + t.sec;
+
       Serial.println("rtc in sec: " + String(rtcSec));
       Serial.println("timer in sec: " + String(timSec));
-      if (rtcSec >= timSec){
+      
+      if (rtcSec == timSec){
         feeding(t.size, t.duration, true, false);
         t.triggered = true;
 
@@ -317,15 +336,21 @@ void onTimer(){
   }
 }
 
+
 // Feeding sys
 void feeding(String size, int delay, bool isTimer, bool manual){
-  if((startValue == HIGH || isTimer || manual) && !actionStarted && eStop != true){
-    actionStarted = true;
+  if((startValue == HIGH || isTimer || manual) && !currentFeed.active && eStop != true){
+    currentFeed.active = true;
+    currentFeed.startTime = millis(); // start counting from now
+    currentFeed.duration = delay;
+    currentFeed.size = size;
+
     digitalWrite(buzzerPin, HIGH);
     digitalWrite(LED_Status, HIGH);
     Feed_Status = 1;
     Blynk.virtualWrite(V1, Feed_Status);
     Serial.println(isTimer ? "TIMED FEEDING" : "FEEDING...");
+    
     lcd.setCursor(0,0);
     lcd.print(isTimer ? "TIMED FEEDING" : "FEEDING...");
     lcd.setCursor(0,1);
@@ -334,15 +359,16 @@ void feeding(String size, int delay, bool isTimer, bool manual){
   }
 
   // Delaying and Closing aka. time till the servo close (portion thing)
-  if (betterDelay(delay, delayStartFeed, delayingFeed) && actionStarted) { // if the delay goes false (off)
+  // if (betterDelay(delay, delayStartFeed, delayingFeed) && actionStarted) { // if the delay goes false (off)
+  if (currentFeed.active && millis() - currentFeed.startTime >= currentFeed.duration){  
     digitalWrite(buzzerPin, LOW);
     digitalWrite(LED_Status, LOW);
     Feed_Status = 0;
     Blynk.virtualWrite(V1, Feed_Status);
     myServo.write(servo_def_pos);
     lcd.clear();
-    actionStarted = false;
-    isTimer = false;
+    currentFeed.active = false;
+    // isTimer = false;
   }
 }
 
@@ -361,12 +387,13 @@ void resetFeedStatus(){
 }
 
   // Debugger
-void readArray(int x){
-    feedTimer &t = feedingTimes[x];
-    Serial.print("Time: ");
-    Serial.println(String(t.hr) + ":" + String(t.min) + ":" + String(t.sec));
-    Serial.print("Duration: "); Serial.print(String(t.duration));
-    Serial.print("| Is Triggered?: "); Serial.println(t.triggered ? "true" : "false"); 
+String readArray(int x){
+  feedTimer &t = feedingTimes[x];
+  String output = "Time: " + String(t.hr) + ":" + String(t.min) + ":" + String(t.sec)
+  + "Duration: " + String(t.duration)
+  + "| Is Triggered?: " + String(t.triggered ? "true" : "false"); 
+
+  return output;
 }
 
   // Manual Feed on Blynk
@@ -414,3 +441,33 @@ BLYNK_WRITE(V6){
   feed_arrCounter+=1;
   Serial.println("Counter (V6): " + String(feed_arrCounter));
 }
+
+BLYNK_WRITE(V10){ // resetSchedule
+    bool input = param.asInt();
+    if (input) {
+      resetArray();
+      readArray(0); readArray(1); readArray(2);   
+    }
+    
+}
+
+BLYNK_WRITE(V11){ // button for readSchedule
+  bool input = param.asInt();
+  if (input) {
+    String msg = "";
+    for(int i = 0; i < 3; i++){
+      feedTimer &t = feedingTimes[i];
+      msg += String(i+1) + ") " +
+             String(t.hr) + ":" + String(t.min) + ":" + String(t.sec)
+             + " | " + t.size 
+             + " | " + String(t.duration) + "ms\n"; 
+    }
+    Serial.print(msg);
+    // Blynk.virtualWrite(V12, msg); // readSchedule  
+    Blynk.virtualWrite(V12, "Schedule:\n"); // readSchedule
+    Blynk.virtualWrite(V12, msg); // readSchedule
+    // for (int i = 0; i < 3; i++) {
+    //   Blynk.virtualWrite(V12, String(i+1) + ") " + readArray(i) + "\n");
+    }  
+  }
+
