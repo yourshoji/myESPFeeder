@@ -28,6 +28,9 @@ bool delayingFeed = false;
 unsigned long delayStartBlink = 0;
 bool delayingBlink = false;
 
+unsigned long delayStartReset = 0;
+bool delayingReset = false;
+
 // Triggers
 bool eStop = false;
 bool actionStarted = false;
@@ -193,26 +196,6 @@ void loop() {
     Blynk.virtualWrite(V2, WiFi_Status ? HIGH : LOW);
   }
 
-  // schedule shifting: blynk report
-  // for (int i = 0; i<3; i++){
-  //   feedTimer &t = feedingTimes[i];
-  //   if (t.hr != ){
-      
-  //   }
-  // }
-  
-  // digitalWrite(LED_BUILTIN, HIGH);
-  // Blynk.virtualWrite(V0, HIGH);
-
-  // if (Blynk.connected()){ // if ESP32 is connected to Blynk via WiFi return true
-  //   digitalWrite(LED_WiFi, HIGH);
-  //   Blynk.virtualWrite(V2, HIGH);
-  // }
-  // else {
-  //   digitalWrite(LED_WiFi, LOW);
-  //   Blynk.virtualWrite(V2, LOW);
-  // }
-
   // RtcDateTime now = Rtc.GetDateTime(); 
   status = rtcTimer(); // update the status (globally)
   
@@ -229,22 +212,11 @@ void loop() {
   // Manual Feed (button push)
   feeding("big", 5000, false, false);
 
-  // // Manual Feed on Blynk
-  // BLYNK_WRITE(V2){ // triggers when the value of this Vx changes
-  //   Feed_Staus = param.asInt(); // get value from app (0 or 1)
-  //   digitalWrite(LED_BUILTIN, Feed_Status);
-  //   Blynk.virtualWrite(V1, ledState); // Send back the state of that led
-  // }
-
-  // Blinking 1/6s, generating more current flow to counteract the power bank's auto-sleep sys
-  // if (betterDelay(6000, delayStartBlink, delayingBlink)) {
-  //   digitalWrite(LED_Status, HIGH);
-  //   delay(100);
-  //   digitalWrite(LED_Status, LOW);
-  // }
   if (feed_arrCounter ==  3){ // accept only 3 schedules
     onTimer();
   }
+
+  delayTillReset();
 
   delay(100);
 }
@@ -299,20 +271,6 @@ String rtc_strTimer(){
 }
 
 // feed on schedule sys
-// void onTimer(){
-//   for (int i = 0; i < 3; i++){
-//     feedTimer &t = feedingTimes[i];
-//     if (!t.triggered && 
-//         status.rtc_hr == t.hr && 
-//         status.rtc_min == t.min && 
-//         status.rtc_sec >= t.sec) {
-        
-//         feeding(t.size, t.duration, true, false);
-//         t.triggered = true;
-//     }
-//   }
-// }
-
 void onTimer(){
   for (int i = 0; i < 3; i++){
     feedTimer &t = feedingTimes[i];
@@ -320,8 +278,8 @@ void onTimer(){
       int rtcSec = status.rtc_hr*3600 + status.rtc_min*60 + status.rtc_sec;
       int timSec = t.hr*3600 + t.min*60 + t.sec;
 
-      Serial.println("rtc in sec: " + String(rtcSec));
-      Serial.println("timer in sec: " + String(timSec));
+      Serial.println("RTC(sec)   : " + String(rtcSec));
+      Serial.println("TIMER(sec) : " + String(timSec));
       
       if (rtcSec == timSec){
         feeding(t.size, t.duration, true, false);
@@ -330,7 +288,6 @@ void onTimer(){
         if (i == 0) Blynk.virtualWrite(V7, 1);
         if (i == 1) Blynk.virtualWrite(V8, 1);
         if (i == 2) Blynk.virtualWrite(V9, 1);
-      
       }
     }
   }
@@ -396,6 +353,26 @@ String readArray(int x){
   return output;
 }
 
+void delayTillReset(){
+  // int lastSchedule = 0;
+  feedTimer &t = feedingTimes[2];
+  if (t.triggered) {
+    // delay(10000);
+    if (betterDelay(10000, delayStartReset, delayingReset)){
+      resetSchedule();
+      Serial.println("Reset!");
+    }
+  }
+}
+
+void resetSchedule(){
+  for(int i = 0; i < 3; i++){
+    feedingTimes[i].triggered = false;
+  }
+
+  resetFeedStatus();
+}
+
   // Manual Feed on Blynk
 BLYNK_WRITE(V3){ // triggers when the value of this Vx changes
     bool triggered = param.asInt(); // get value from app (0 or 1)
@@ -415,7 +392,6 @@ BLYNK_WRITE(V4){
   feedingTimes[0] = {hr, min, sec, "small", 3000, false};
   feed_arrCounter+=1;
   Serial.println("Counter (V6): " + String(feed_arrCounter));
-
 }
 
 BLYNK_WRITE(V5){
