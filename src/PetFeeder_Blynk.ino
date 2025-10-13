@@ -159,7 +159,7 @@ void setup()
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
 
   // reset the array (might be a button later)
-  resetArray();
+  // resetArray();
 
   // read current items in schedule timer array
   readArray(0);
@@ -234,7 +234,6 @@ int portion(String size){
   else {
     return 0;
   }
-
 }
 
 bool betterDelay(unsigned long duration, unsigned long &delayStart, bool &delaying){
@@ -284,6 +283,9 @@ void onTimer(){
       if (rtcSec == timSec){
         feeding(t.size, t.duration, true, false);
         t.triggered = true;
+
+        String msg = "Schedule(" + String(i+1) + ") is fed!";
+        Blynk.logEvent("feeding_on_schedule", msg);
 
         if (i == 0) Blynk.virtualWrite(V7, 1);
         if (i == 1) Blynk.virtualWrite(V8, 1);
@@ -389,7 +391,7 @@ BLYNK_WRITE(V4){
   int sec = total % 60;
   Serial.println("Total Seconds (V4): " + String(total));
   Serial.println(String(hr) + ":" + String(min) + ":" + String(sec));
-  feedingTimes[0] = {hr, min, sec, "small", 3000, false};
+  feedingTimes[0] = {hr, min, sec, "", 0, false};
   feed_arrCounter+=1;
   Serial.println("Counter (V6): " + String(feed_arrCounter));
 }
@@ -401,7 +403,7 @@ BLYNK_WRITE(V5){
   int sec = total % 60;
   Serial.println("Total Seconds (V5): " + String(total));
   Serial.println(String(hr) + ":" + String(min) + ":" + String(sec));
-  feedingTimes[1] = {hr, min, sec, "small", 3000, false};
+  feedingTimes[1] = {hr, min, sec, "", 0, false};
   feed_arrCounter+=1;
   Serial.println("Counter (V6): " + String(feed_arrCounter));
 }
@@ -413,7 +415,7 @@ BLYNK_WRITE(V6){
   int sec = total % 60;
   Serial.println("Total Seconds (V6): " + String(total));
   Serial.println(String(hr) + ":" + String(min) + ":" + String(sec));
-  feedingTimes[2] = {hr, min, sec, "small", 3000, false};
+  feedingTimes[2] = {hr, min, sec, "", 0, false};
   feed_arrCounter+=1;
   Serial.println("Counter (V6): " + String(feed_arrCounter));
 }
@@ -427,7 +429,7 @@ BLYNK_WRITE(V10){ // resetSchedule
     
 }
 
-BLYNK_WRITE(V11){ // button for readSchedule
+BLYNK_WRITE(V11){ // button for readSchedule (terminal)
   bool input = param.asInt();
   if (input) {
     String msg = "";
@@ -436,7 +438,7 @@ BLYNK_WRITE(V11){ // button for readSchedule
       msg += String(i+1) + ") " +
              String(t.hr) + ":" + String(t.min) + ":" + String(t.sec)
              + " | " + t.size 
-             + " | " + String(t.duration) + "ms\n"; 
+             + " | " + String(t.duration / 1000) + "s\n"; 
     }
     Serial.print(msg);
     // Blynk.virtualWrite(V12, msg); // readSchedule  
@@ -446,4 +448,68 @@ BLYNK_WRITE(V11){ // button for readSchedule
     //   Blynk.virtualWrite(V12, String(i+1) + ") " + readArray(i) + "\n");
     }  
   }
+
+BLYNK_WRITE(V13){ // schedule 1
+  feedTimer &t = feedingTimes[0];
+  switch (param.asInt()){ 
+    case 0: { // S
+      t.size = "small";
+      t.duration = 2000;
+      break;
+    }
+    case 1: { // M
+      t.size = "medium";
+      t.duration = 4000;
+      break;
+    }
+    case 2: { // L
+      t.size = "big";
+      t.duration = 6000;
+      break;
+    }
+  }
+}
+
+BLYNK_WRITE(V14){ // schedule 2
+  feedTimer &t = feedingTimes[1];
+  switch (param.asInt()){ 
+    case 0: { // S
+      t.size = "small";
+      t.duration = 2000;
+      break;
+    }
+    case 1: { // M
+      t.size = "medium";
+      t.duration = 4000;
+      break;
+    }
+    case 2: { // L
+      t.size = "big";
+      t.duration = 6000;
+      break;
+    }
+  }
+}
+
+BLYNK_WRITE(V15){ // schedule 3
+  feedTimer &t = feedingTimes[2];
+  switch (param.asInt()){ 
+    case 0: { // S
+      t.size = "small";
+      t.duration = 2000;
+      break;
+    }
+    case 1: { // M
+      t.size = "medium";
+      t.duration = 4000;
+      break;
+    }
+    case 2: { // L
+      t.size = "big";
+      t.duration = 6000;
+      break;
+    }
+  }
+}
+
 
