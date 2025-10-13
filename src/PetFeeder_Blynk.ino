@@ -103,6 +103,10 @@ struct FeedState {
 
 FeedState currentFeed;
 
+BLYNK_CONNECTED(){
+  Blynk.syncVirtual(V4, V5, V6, V13, V14, V15);
+}
+
 void setup()
 {
   Serial.begin(115200);
@@ -391,7 +395,11 @@ BLYNK_WRITE(V4){
   int sec = total % 60;
   Serial.println("Total Seconds (V4): " + String(total));
   Serial.println(String(hr) + ":" + String(min) + ":" + String(sec));
-  feedingTimes[0] = {hr, min, sec, "", 0, false};
+  feedTimer &t = feedingTimes[0];
+  t.hr = hr;
+  t.min = min;
+  t.sec = sec;
+  t.triggered = false;
   feed_arrCounter+=1;
   Serial.println("Counter (V6): " + String(feed_arrCounter));
 }
@@ -403,7 +411,11 @@ BLYNK_WRITE(V5){
   int sec = total % 60;
   Serial.println("Total Seconds (V5): " + String(total));
   Serial.println(String(hr) + ":" + String(min) + ":" + String(sec));
-  feedingTimes[1] = {hr, min, sec, "", 0, false};
+  feedTimer &t = feedingTimes[1];
+  t.hr = hr;
+  t.min = min;
+  t.sec = sec;
+  t.triggered = false;
   feed_arrCounter+=1;
   Serial.println("Counter (V6): " + String(feed_arrCounter));
 }
@@ -415,7 +427,11 @@ BLYNK_WRITE(V6){
   int sec = total % 60;
   Serial.println("Total Seconds (V6): " + String(total));
   Serial.println(String(hr) + ":" + String(min) + ":" + String(sec));
-  feedingTimes[2] = {hr, min, sec, "", 0, false};
+  feedTimer &t = feedingTimes[2];
+  t.hr = hr;
+  t.min = min;
+  t.sec = sec;
+  t.triggered = false;
   feed_arrCounter+=1;
   Serial.println("Counter (V6): " + String(feed_arrCounter));
 }
