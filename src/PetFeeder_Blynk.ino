@@ -2,11 +2,13 @@
 #define BLYNK_TEMPLATE_NAME "FurFeast"
 #define BLYNK_AUTH_TOKEN "kUHVFBKuTdchCSEz3nEtOh2S9PDLFmNw"
 
-char ssid[] = "Emiliejeans1_2.4G";
-char pass[] = "emilie19";
+const char* ssid = "Emiliejeans1_2.4G";
+const char* pass = "emilie19";
+const char* webApp = "https://script.google.com/macros/s/AKfycbw-YFZw0srT4RFY42tr9TSxoOBGaUt0Ks5bFk3R9lE0mMqrtVMNgZcRnVZ2JrnGAPCR/exec";
 
 #include <WiFi.h>
 #include <BlynkSimpleEsp32.h>
+#include <HTTPClient.h>
 #include <ESP32Servo.h>
 #include <LiquidCrystal_I2C.h>
 #include <ThreeWire.h>
@@ -31,8 +33,12 @@ bool delayingBlink = false;
 unsigned long delayStartReset = 0;
 bool delayingReset = false;
 
+unsigned long delayStartLog = 0;
+bool delayingLog = false;
+
 // Triggers
 bool eStop = false;
+bool prev_eStop = false;
 bool actionStarted = false;
 bool timerTriggered = false;
 bool isTimer = false; // triggers with onTimer(), only when the clock hits
@@ -207,16 +213,28 @@ void loop() {
   stopValue = digitalRead(buttonStopPin);
 
   // E-stop
-  if (stopValue == HIGH){
-    eStop = true; // non-toggle
-    myServo.detach();
-    Serial.println("E-STOP IS ACTIVATED!");
-  }
+  eStop = (stopValue == HIGH); // true if pressed, false if released
+  E_STOP(eStop);
+  // if (eStop != prev_eStopg){
+  //   prev_eStop = eStop;
+  
+  //   if (eStop) {
+  //     myServo.detach();
+  //     Serial.println("E-STOP IS ACTIVATED!");
+  //     // Blynk.virtualWrite(V12, "E-STOP IS ACTIVATED!"); 
+  //   }
+  //   else {
+  //     myServo.attach(servoPin);
+  //     Serial.println("SERVO IS BACK ONLINE!");
+  //     // Blynk.virtualWrite(V12, "SERVO IS BACK ONLINE!"); 
+  //   }
+  // }
 
   // Manual Feed (button push)
   feeding("big", 5000, false, false);
 
   if (feed_arrCounter ==  3){ // accept only 3 schedules
+    // Blynk.virtualWrite(V12, "Running..."); 
     onTimer();
   }
 
@@ -224,6 +242,8 @@ void loop() {
 
   delay(100);
 }
+
+// functions down here
 
 int portion(String size){
   if (size=="small") {
@@ -291,9 +311,18 @@ void onTimer(){
         String msg = "Schedule(" + String(i+1) + ") is fed!";
         Blynk.logEvent("feeding_on_schedule", msg);
 
-        if (i == 0) Blynk.virtualWrite(V7, 1);
-        if (i == 1) Blynk.virtualWrite(V8, 1);
-        if (i == 2) Blynk.virtualWrite(V9, 1);
+        if (i == 0) {
+          Blynk.virtualWrite(V7, 1);
+          sheetLogger(String(i+1), "Yes", "No");
+        } 
+        if (i == 1) {
+          Blynk.virtualWrite(V8, 1);
+          sheetLogger(String(i+1), "Yes", "No");
+        }
+        if (i == 2) {
+          Blynk.virtualWrite(V9, 1);
+          sheetLogger(String(i+1), "Yes", "No");
+        } 
       }
     }
   }
@@ -322,7 +351,6 @@ void feeding(String size, int delay, bool isTimer, bool manual){
   }
 
   // Delaying and Closing aka. time till the servo close (portion thing)
-  // if (betterDelay(delay, delayStartFeed, delayingFeed) && actionStarted) { // if the delay goes false (off)
   if (currentFeed.active && millis() - currentFeed.startTime >= currentFeed.duration){  
     digitalWrite(buzzerPin, LOW);
     digitalWrite(LED_Status, LOW);
@@ -349,7 +377,7 @@ void resetFeedStatus(){
     Blynk.virtualWrite(V9, 0);
 }
 
-  // Debugger
+// Debugger
 String readArray(int x){
   feedTimer &t = feedingTimes[x];
   String output = "Time: " + String(t.hr) + ":" + String(t.min) + ":" + String(t.sec)
@@ -377,6 +405,30 @@ void resetSchedule(){
   }
 
   resetFeedStatus();
+}
+
+void sheetLogger(String val1, String val2, String val3){
+  if (WiFi.status() == WL_CONNECTED){
+    HTTPClient http;
+    String url = String(webApp) + "?value1=" + String(val1) + "&value2=" + String(val2) + "&value3=" + String(val3);
+    
+    http.begin(url);
+    int code = http.GET(); // http respond code (usually 0+, -1 = failed)
+
+    if (code > 0){
+      Serial.print("Logged: ");
+      Serial.println(http.getString());
+    } else {
+      Serial.print("Error code: ");
+      Serial.println(code);
+    }
+
+    http.end();
+  } else {
+    Serial.println("WiFi Disconnected!");
+  }  
+
+  // betterDelay(5000, delayStartLog, delayingLog);
 }
 
   // Manual Feed on Blynk
@@ -528,4 +580,26 @@ BLYNK_WRITE(V15){ // schedule 3
   }
 }
 
+BLYNK_WRITE(V16){ // e-stop function
+  bool input = param.asInt();
+  E_STOP(input);  
+}
 
+void E_STOP(bool state) {
+  if (state != prev_eStop){
+  prev_eStop = state; // state update
+
+    if (state) {
+      myServo.detach();
+      Serial.println("E-STOP IS ACTIVATED!");
+      // Blynk.virtualWrite(V12, "E-STOP IS ACTIVATED!"); 
+    }
+    else {
+      myServo.attach(servoPin);
+      Serial.println("SERVO IS BACK ONLINE!");
+      // Blynk.virtualWrite(V12, "SERVO IS BACK ONLINE!"); 
+    }
+  }
+
+  eStop = state;
+}
