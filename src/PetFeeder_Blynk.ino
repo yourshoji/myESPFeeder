@@ -49,7 +49,7 @@ bool isTimer = false; // triggers with onTimer(), only when the clock hits
 #define buttonStartPin 18
 #define buttonStopPin 19
 #define buzzerPin 23
-#define servoPin 14
+#define servoPin 26
 
 int Power_Status = 0; // LED_BUILTIN (V0)
 int prev_Power_Status = 0;
@@ -78,6 +78,11 @@ feedTimer feedingTimes[3] = {
   // {14, 45, 0, "medium", 5000, false},
   // {14, 47, 0, "big", 7000, false}
 };
+
+// sizeof() = total size in byte (3 elements * 2 bytes each = 6 bytes)
+// total of 6 bytes divided by first byte = 2; ans = 3;
+int arrLength = sizeof(feedingTimes) / sizeof(feedingTimes[0]);
+int lastIndex = arrLength - 1;
 
 int feed_arrCounter = 0;
 
@@ -113,8 +118,8 @@ BLYNK_CONNECTED(){
   Blynk.syncVirtual(V4, V5, V6, V13, V14, V15);
 }
 
-void setup()
-{
+void setup() {
+
   Serial.begin(115200);
 
   // I/O pins setup
@@ -143,7 +148,12 @@ void setup()
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
+    
+    lcd.print("CONNECTING...");
+    delay(3000);
+    lcd.clear();
   }
+  
   Serial.println("WiFi Connected!");
 
   // statuses (on-start)
@@ -154,7 +164,7 @@ void setup()
   prev_Power_Status = Power_Status;
 
   // wifi status
-  if(Blynk.connected()){ // true
+  if (Blynk.connected()){ // true
     digitalWrite(LED_WiFi, HIGH);
     Blynk.virtualWrite(V2, HIGH);
     WiFi_Status = 1;
@@ -185,9 +195,14 @@ void setup()
   // Reupload if the RTC is no longer supply or has no alternate battery
   // RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
   // Rtc.SetDateTime(compiled);       // update the status (globally)
+
+  lcd.print("ALL SETUP DONE!");
+  delay(3000);
+  lcd.clear();
 }
 
 void loop() {
+  
   Blynk.run();
 
   WiFi_Status = Blynk.connected();
@@ -214,7 +229,7 @@ void loop() {
 
   // E-stop
   eStop = (stopValue == HIGH); // true if pressed, false if released
-  E_STOP(eStop);
+  // E_STOP(eStop);
   // if (eStop != prev_eStopg){
   //   prev_eStop = eStop;
   
@@ -231,16 +246,16 @@ void loop() {
   // }
 
   // Manual Feed (button push)
-  feeding("big", 5000, false, false);
+  startFeed("big", 5000, false, false);
 
-  if (feed_arrCounter ==  3){ // accept only 3 schedules
+  if (feed_arrCounter > 0){ // accept only 3 schedules
     // Blynk.virtualWrite(V12, "Running..."); 
     onTimer();
   }
 
   delayTillReset();
 
-  delay(100);
+  // delay(100);
 }
 
 // functions down here
@@ -305,7 +320,7 @@ void onTimer(){
       Serial.println("TIMER(sec) : " + String(timSec));
       
       if (rtcSec == timSec){
-        feeding(t.size, t.duration, true, false);
+        startFeed(t.size, t.duration, true, false);
         t.triggered = true;
 
         String msg = "Schedule(" + String(i+1) + ") is fed!";
@@ -330,7 +345,7 @@ void onTimer(){
 
 
 // Feeding sys
-void feeding(String size, int delay, bool isTimer, bool manual){
+void startFeed(String size, int delay, bool isTimer, bool manual){
   if((startValue == HIGH || isTimer || manual) && !currentFeed.active && eStop != true){
     currentFeed.active = true;
     currentFeed.startTime = millis(); // start counting from now
@@ -350,17 +365,23 @@ void feeding(String size, int delay, bool isTimer, bool manual){
     myServo.write(portion(size));
   }
 
-  // Delaying and Closing aka. time till the servo close (portion thing)
-  if (currentFeed.active && millis() - currentFeed.startTime >= currentFeed.duration){  
-    digitalWrite(buzzerPin, LOW);
-    digitalWrite(LED_Status, LOW);
-    Feed_Status = 0;
-    Blynk.virtualWrite(V1, Feed_Status);
-    myServo.write(servo_def_pos);
-    lcd.clear();
-    currentFeed.active = false;
-    // isTimer = false;
+  updateFeed();
+}
+
+void updateFeed(){
+  if (!currentFeed.active){
+    return;
   }
+
+  if (millis() - currentFeed.startTime >= currentFeed.duration){  
+      digitalWrite(buzzerPin, LOW);
+      digitalWrite(LED_Status, LOW);
+      Feed_Status = 0;
+      Blynk.virtualWrite(V1, Feed_Status);
+      myServo.write(servo_def_pos);
+      lcd.clear();
+      currentFeed.active = false;
+    }
 }
 
 void resetArray(){
@@ -389,7 +410,7 @@ String readArray(int x){
 
 void delayTillReset(){
   // int lastSchedule = 0;
-  feedTimer &t = feedingTimes[2];
+  feedTimer &t = feedingTimes[lastIndex];
   if (t.triggered) {
     // delay(10000);
     if (betterDelay(10000, delayStartReset, delayingReset)){
@@ -400,10 +421,9 @@ void delayTillReset(){
 }
 
 void resetSchedule(){
-  for(int i = 0; i < 3; i++){
+  for (int i = 0; i < 3; i++){
     feedingTimes[i].triggered = false;
   }
-
   resetFeedStatus();
 }
 
@@ -436,7 +456,7 @@ BLYNK_WRITE(V3){ // triggers when the value of this Vx changes
     bool triggered = param.asInt(); // get value from app (0 or 1)
     // Serial.println(triggered);
     if (triggered) { // if receive 1 then
-      feeding("big", 5000, false, true);
+      startFeed("big", 5000, false, true);
     } 
   }
 
@@ -500,7 +520,7 @@ BLYNK_WRITE(V10){ // resetSchedule
 BLYNK_WRITE(V11){ // button for readSchedule (terminal)
   bool input = param.asInt();
   if (input) {
-    String msg = "";
+    String msg = "Schedule:\n";
     for(int i = 0; i < 3; i++){
       feedTimer &t = feedingTimes[i];
       msg += String(i+1) + ") " +
@@ -510,12 +530,12 @@ BLYNK_WRITE(V11){ // button for readSchedule (terminal)
     }
     Serial.print(msg);
     // Blynk.virtualWrite(V12, msg); // readSchedule  
-    Blynk.virtualWrite(V12, "Schedule:\n"); // readSchedule
+    // Blynk.virtualWrite(V12, "Schedule:\n"); // readSchedule
     Blynk.virtualWrite(V12, msg); // readSchedule
     // for (int i = 0; i < 3; i++) {
     //   Blynk.virtualWrite(V12, String(i+1) + ") " + readArray(i) + "\n");
-    }  
-  }
+  }  
+}
 
 BLYNK_WRITE(V13){ // schedule 1
   feedTimer &t = feedingTimes[0];
@@ -582,24 +602,24 @@ BLYNK_WRITE(V15){ // schedule 3
 
 BLYNK_WRITE(V16){ // e-stop function
   bool input = param.asInt();
-  E_STOP(input);  
+  // E_STOP(input);  
 }
 
-void E_STOP(bool state) {
-  if (state != prev_eStop){
-  prev_eStop = state; // state update
+// void E_STOP(bool state) {
+//   if (state != prev_eStop){
+//   prev_eStop = state; // state update
 
-    if (state) {
-      myServo.detach();
-      Serial.println("E-STOP IS ACTIVATED!");
-      // Blynk.virtualWrite(V12, "E-STOP IS ACTIVATED!"); 
-    }
-    else {
-      myServo.attach(servoPin);
-      Serial.println("SERVO IS BACK ONLINE!");
-      // Blynk.virtualWrite(V12, "SERVO IS BACK ONLINE!"); 
-    }
-  }
+//     if (state) {
+//       myServo.detach();
+//       Serial.println("E-STOP IS ACTIVATED!");
+//       // Blynk.virtualWrite(V12, "E-STOP IS ACTIVATED!"); 
+//     }
+//     else {
+//       myServo.attach(servoPin);
+//       Serial.println("SERVO IS BACK ONLINE!");
+//       // Blynk.virtualWrite(V12, "SERVO IS BACK ONLINE!"); 
+//     }
+//   }
 
-  eStop = state;
-}
+//   eStop = state;
+// }
