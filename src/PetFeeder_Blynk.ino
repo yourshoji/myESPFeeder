@@ -2,8 +2,8 @@
 #define BLYNK_TEMPLATE_NAME "FurFeast"
 #define BLYNK_AUTH_TOKEN "kUHVFBKuTdchCSEz3nEtOh2S9PDLFmNw"
 
-const char* ssid = "Emiliejeans1_2.4G";
-const char* pass = "emilie19";
+const char* ssid = "UuAa";
+const char* pass = "ginkee123";
 const char* webApp = "https://script.google.com/macros/s/AKfycbw-YFZw0srT4RFY42tr9TSxoOBGaUt0Ks5bFk3R9lE0mMqrtVMNgZcRnVZ2JrnGAPCR/exec";
 
 #include <WiFi.h>
