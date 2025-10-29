@@ -66,7 +66,9 @@ This project is built using PlatformIO with the Arduino framework.
 
 2.  **Install PlatformIO:** Ensure you have the [PlatformIO IDE extension](https://platformio.org/platformio-ide) for VSCode installed.
 
-3.  **Configure Credentials:** Open `src/PetFeeder_Blynk.ino` and update the following values with your own credentials:
+3.  **Set up Event Logger:** Create a new Google Sheet, set up Apps Script, and put `Code.gs` (sheet-log folder) it. Hit `Deploy` and use the given URL in the following step.
+
+4.  **Configure Credentials:** Open `src/PetFeeder_Blynk.ino` and update the following values with your own credentials:
 
     ```cpp
     // Blynk Credentials
@@ -81,15 +83,15 @@ This project is built using PlatformIO with the Arduino framework.
     // Google Apps Script URL for logging
     const char* webApp = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
     ```
-
-4.  **Set RTC Time (First Use):** For the initial upload, you need to set the time on the DS1302 module. In `src/PetFeeder_Blynk.ino`, find the `setup()` function and uncomment these two lines:
+    
+5.  **Set RTC Time (First Use):** For the initial upload, you need to set the time on the DS1302 module. In `src/PetFeeder_Blynk.ino`, find the `setup()` function and uncomment these two lines:
     ```cpp
     // RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
     // Rtc.SetDateTime(compiled);
     ```
     Upload the code to your ESP32. After the first successful upload, **comment these lines out again** and re-upload to prevent the RTC from being reset on every boot.
 
-5.  **Build and Upload:** Use the PlatformIO interface to build and upload the project to your ESP32.
+6.  **Build and Upload:** Use the PlatformIO interface to build and upload the project to your ESP32.
 
 ## Blynk App Configuration
 
@@ -112,3 +114,37 @@ Set up your Blynk project dashboard with the following widgets:
 | `V14`       | Segmented Switch         | Select portion size (S/M/L) for Schedule 2         |
 | `V15`       | Segmented Switch         | Select portion size (S/M/L) for Schedule 3         |
 | `V16`       | Button / Switch          | Emergency Stop                                     |
+
+## Screenshots
+<table width="100%">
+  <tr>
+    <td align="center" width="33%"><strong>Prototype</strong></td>
+    <td align="center" width="33%"><strong>Blynk</strong></td>
+    <td align="center" width="33%"><strong>Google Sheet Logging</strong></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/yourshoji/myESPFeeder/blob/main/img/model.jpg" alt="Prototype" width="100%"></td>
+    <td><img src="https://github.com/yourshoji/myESPFeeder/blob/main/img/blynk.jpg" alt="Blynk" width="100%"></td>
+    <td><img src="https://github.com/yourshoji/myESPFeeder/blob/main/img/logger.png" alt="Logger" width="100%"></td>
+  </tr>
+  
+  <tr>
+    <td align="center"><strong>Angle 1</strong></td>
+    <td align="center"><strong>Angle 2</strong></td>
+    <td align="center"><strong>Angle 3</strong></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/yourshoji/myESPFeeder/blob/main/img/compo3.jpg" alt="Angle1" width="100%"></td>
+    <td><img src="https://github.com/yourshoji/myESPFeeder/blob/main/img/compo2.jpg" alt="Angle2" width="100%"></td>
+    <td><img src="https://github.com/yourshoji/myESPFeeder/blob/main/img/compo1.jpg" alt="Angle3" width="100%"></td>
+  </tr>
+
+  <tr>
+    <td align="center" colspan="3"><strong>Schematic</strong></td>
+  </tr>
+  <tr>
+    <td align="center" colspan="3">
+      <img src="https://github.com/yourshoji/myESPFeeder/blob/main/img/feeder.png" alt="Scheme" width="33%">
+    </td>
+  </tr>
+</table>
