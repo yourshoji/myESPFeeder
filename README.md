@@ -140,7 +140,7 @@ Set up your Blynk project dashboard with the following widgets:
   </tr>
 
   <tr>
-    <td align="center" colspan="3"><strong>Schematic</strong></td>
+    <td align="center" colspan="3"><strong>Drawing</strong></td>
   </tr>
   <tr>
     <td align="center" colspan="3">
