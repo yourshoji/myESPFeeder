@@ -1,10 +1,14 @@
-#define BLYNK_TEMPLATE_ID "TMPL6C21JRy5X"
-#define BLYNK_TEMPLATE_NAME "FurFeast"
-#define BLYNK_AUTH_TOKEN "kUHVFBKuTdchCSEz3nEtOh2S9PDLFmNw"
+// Blynk Credentials
+#define BLYNK_TEMPLATE_ID "YOUR_TEMPLATE_ID"
+#define BLYNK_TEMPLATE_NAME "YOUR_TEMPLATE_NAME"
+#define BLYNK_AUTH_TOKEN "YOUR_BLYNK_AUTH_TOKEN"
 
-const char* ssid = "UuAa";
-const char* pass = "ginkee123";
-const char* webApp = "https://script.google.com/macros/s/AKfycbw-YFZw0srT4RFY42tr9TSxoOBGaUt0Ks5bFk3R9lE0mMqrtVMNgZcRnVZ2JrnGAPCR/exec";
+// WiFi Credentials
+const char* ssid = "YOUR_WIFI_SSID";
+const char* pass = "YOUR_WIFI_PASSWORD";
+
+// Google Apps Script URL for logging
+const char* webApp = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
 
 #include <WiFi.h>
 #include <BlynkSimpleEsp32.h>
