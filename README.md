@@ -1,4 +1,8 @@
-This repository contains the source code for an automated pet feeder powered by an ESP32 microcontroller. The system is designed to dispense pet food at scheduled times or manually, with control and monitoring capabilities provided through the Blynk mobile application.
+# ESP32 Smart Pet Feeder
+
+An automated ESP32-powered pet feeder that dispenses food on a schedule or manually. It is controlled and monitored via the Blynk mobile app.
+
+This project was built to solve the problem of inconsistent pet feeding and the anxiety it causes owners. Busy schedules, forgetfulness, and lack of a feeding log lead to uncertainty. This automated system provides **consistency for the pet** and **peace of mind for the owner** through reliable scheduling, remote monitoring, and feeding logs.
 
 ## Features
 
