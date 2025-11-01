@@ -122,14 +122,22 @@ Set up your Blynk project dashboard with the following widgets:
 ## Screenshots
 <table width="100%">
   <tr>
-    <td align="center" width="33%"><strong>Prototype</strong></td>
-    <td align="center" width="33%"><strong>Blynk</strong></td>
-    <td align="center" width="33%"><strong>Google Sheet Logging</strong></td>
+    <td align="center" colspan="3"><strong>Demonstration</strong></td>
   </tr>
   <tr>
-    <td><img src="https://github.com/yourshoji/myESPFeeder/blob/main/img/model.jpg" alt="Prototype" width="100%"></td>
-    <td><img src="https://github.com/yourshoji/myESPFeeder/blob/main/img/blynk.jpg" alt="Blynk" width="100%"></td>
-    <td><img src="https://github.com/yourshoji/myESPFeeder/blob/main/img/logger.png" alt="Logger" width="100%"></td>
+    <td align="center" colspan="3">
+      <img src="https://raw.githubusercontent.com/yourshoji/myESPFeeder/main/img/gif.gif" alt="Pet Feeder in Action" width="50%">
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><strong>Prototype</strong></td>
+    <td align="center" width="33%"><strong>Blynk App</strong></td>
+    <td align="center" width="33%"><strong>Google Sheet Log</strong></td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/yourshoji/myESPFeeder/main/img/model.jpg" alt="Prototype" width="100%"></td>
+    <td><img src="https://raw.githubusercontent.com/yourshoji/myESPFeeder/main/img/blynk.jpg" alt="Blynk" width="100%"></td>
+    <td><img src="https://raw.githubusercontent.com/yourshoji/myESPFeeder/main/img/logger.png" alt="Logger" width="100%"></td>
   </tr>
   
   <tr>
@@ -138,17 +146,26 @@ Set up your Blynk project dashboard with the following widgets:
     <td align="center"><strong>Angle 3</strong></td>
   </tr>
   <tr>
-    <td><img src="https://github.com/yourshoji/myESPFeeder/blob/main/img/compo3.jpg" alt="Angle1" width="100%"></td>
-    <td><img src="https://github.com/yourshoji/myESPFeeder/blob/main/img/compo2.jpg" alt="Angle2" width="100%"></td>
-    <td><img src="https://github.com/yourshoji/myESPFeeder/blob/main/img/compo1.jpg" alt="Angle3" width="100%"></td>
+    <td><img src="https://raw.githubusercontent.com/yourshoji/myESPFeeder/main/img/compo3.jpg" alt="Angle1" width="100%"></td>
+    <td><img src="https://raw.githubusercontent.com/yourshoji/myESPFeeder/main/img/compo2.jpg" alt="Angle2" width="100%"></td>
+    <td><img src="https://raw.githubusercontent.com/yourshoji/myESPFeeder/main/img/compo1.jpg" alt="Angle3" width="100%"></td>
   </tr>
 
   <tr>
-    <td align="center" colspan="3"><strong>Drawing</strong></td>
+    <td align="center" colspan="3"><strong>Blueprint</strong></td>
   </tr>
   <tr>
     <td align="center" colspan="3">
-      <img src="https://github.com/yourshoji/myESPFeeder/blob/main/img/feeder.png" alt="Scheme" width="33%">
+      <img src="https://raw.githubusercontent.com/yourshoji/myESPFeeder/main/img/feeder.png" alt="Scheme" width="33%">
+    </td>
+  </tr>
+  
+  <tr>
+    <td align="center" colspan="3"><strong>Wiring Diagram</strong></td>
+  </tr>
+  <tr>
+    <td align="center" colspan="3">
+      <img src="https://raw.githubusercontent.com/yourshoji/myESPFeeder/main/img/overall1.jpg" alt="Wiring Diagram" width="60%">
     </td>
   </tr>
 </table>
